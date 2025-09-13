@@ -69,8 +69,7 @@ python app.py
 | `color` | string | "000000" | 文字颜色（十六进制，不含#） |
 | `align` | string | "center" | 水平对齐方式：left/center/right |
 | `valign` | string | "middle" | 垂直对齐方式：top/middle/bottom |
-| `stroke_color` | string | "ffffff" | 描边颜色（十六进制，不含#） |
-| `stroke_width` | int | 0 | 描边宽度（0为无描边） |
+
 
 ### 使用示例
 
@@ -84,10 +83,7 @@ http://localhost:5000/username_image?name=Hello世界🌍
 http://localhost:5000/username_image?name=用户名&width=800&height=150&size=48&color=ff6b6b&align=center&valign=middle
 ```
 
-3. **带描边效果**：
-```
-http://localhost:5000/username_image?name=炫酷文字&color=ffffff&stroke_color=000000&stroke_width=2
-```
+
 
 ## 项目结构
 
