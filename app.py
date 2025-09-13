@@ -10,30 +10,17 @@ import io
 app = Flask(__name__)
 
 FONT_MAIN = "ChillRoundFRegular.ttf"
-FONT_EMOJI = "NotoColorEmoji.ttf"  # 修正文件名
+FONT_EMOJI = "NotoColorEmoji.ttf"
 
 def render_text_to_png(text):
     width, height = 600, 100
     surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
     ctx = cairo.Context(surface)
-    
-    # 设置背景色为白色（可选）
-    ctx.set_source_rgb(1, 1, 1)  # 白色背景
-    ctx.paint()
-    
-    # 设置文字颜色为黑色
-    ctx.set_source_rgb(0, 0, 0)  # 黑色文字
 
     layout = PangoCairo.create_layout(ctx)
     layout.set_text(text, -1)
-    
-    # 简化字体描述，使用系统默认字体作为备选
-    font_desc = Pango.font_description_from_string("Sans 36")
+    font_desc = Pango.font_description_from_string(f"{FONT_MAIN} 36, {FONT_EMOJI} 36")
     layout.set_font_description(font_desc)
-    
-    # 居中显示文字
-    text_width, text_height = layout.get_pixel_size()
-    ctx.move_to((width - text_width) / 2, (height - text_height) / 2)
 
     PangoCairo.show_layout(ctx, layout)
 
