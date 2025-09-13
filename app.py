@@ -22,6 +22,7 @@ def render_text_to_png(text):
     font_desc = Pango.font_description_from_string(f"{FONT_MAIN} 36, {FONT_EMOJI} 36")
     layout.set_font_description(font_desc)
 
+    ctx.set_source_rgb(0, 0, 0)  # 设置文字颜色为黑色
     PangoCairo.show_layout(ctx, layout)
 
     img_io = io.BytesIO()
