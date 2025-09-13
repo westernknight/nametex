@@ -12,17 +12,36 @@ app = Flask(__name__)
 FONT_MAIN = "ChillRoundFRegular.ttf"
 FONT_EMOJI = "NotoColorEmoji.ttf"
 
-def render_text_to_png(text):
-    width, height = 600, 100
+def render_text_to_png(text, width, height, font_size, color, alignment):
     surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
     ctx = cairo.Context(surface)
 
     layout = PangoCairo.create_layout(ctx)
+    # 必须设置布局宽度，对齐方式才能生效
+    layout.set_width(width * Pango.SCALE)
+
+    if alignment == "center":
+        layout.set_alignment(Pango.Alignment.CENTER)
+    elif alignment == "right":
+        layout.set_alignment(Pango.Alignment.RIGHT)
+    else:
+        layout.set_alignment(Pango.Alignment.LEFT)
+
     layout.set_text(text, -1)
-    font_desc = Pango.font_description_from_string("ChillRoundF, Noto Color Emoji 36")
+    font_desc_str = f"ChillRoundFRegular, Noto Color Emoji {font_size}"
+    font_desc = Pango.font_description_from_string(font_desc_str)
     layout.set_font_description(font_desc)
 
-    ctx.set_source_rgb(0, 0, 0)  # 设置文字颜色为黑色
+    # 解析十六进制颜色
+    try:
+        color = color.lstrip('#')
+        r = int(color[0:2], 16) / 255.0
+        g = int(color[2:4], 16) / 255.0
+        b = int(color[4:6], 16) / 255.0
+        ctx.set_source_rgb(r, g, b)
+    except:
+        ctx.set_source_rgb(0, 0, 0)  # 如果颜色格式错误，默认为黑色
+
     PangoCairo.show_layout(ctx, layout)
 
     img_io = io.BytesIO()
@@ -33,7 +52,12 @@ def render_text_to_png(text):
 @app.route("/username_image")
 def username_image():
     username = request.args.get("name", "默认昵称🌟")
-    img_io = render_text_to_png(username)
+    width = request.args.get("width", 600, type=int)
+    height = request.args.get("height", 100, type=int)
+    font_size = request.args.get("size", 36, type=int)
+    color = request.args.get("color", "000000")  # 默认黑色
+    alignment = request.args.get("align", "center")  # 默认居中对齐
+    img_io = render_text_to_png(username, width, height, font_size, color, alignment)
     return send_file(img_io, mimetype="image/png")
 
 if __name__ == "__main__":
