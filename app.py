@@ -17,6 +17,26 @@ def render_text_to_png(text, width, height, font_size, color, alignment, valign,
     ctx = cairo.Context(surface)
 
     layout = PangoCairo.create_layout(ctx)
+
+    if font_size == 0:
+        # Auto-calculate font size
+        reference_font_size = 100
+        font_desc = Pango.font_description_from_string(f"ChillRoundFRegular, Noto Color Emoji {reference_font_size}")
+        layout.set_font_description(font_desc)
+        layout.set_text(text, -1)
+        
+        _ink_rect, logical_rect = layout.get_pixel_extents()
+        text_width = logical_rect.width
+        text_height = logical_rect.height
+
+        if text_width > 0 and text_height > 0:
+            width_ratio = width / text_width
+            height_ratio = height / text_height
+            ratio = min(width_ratio, height_ratio)
+            font_size = int(reference_font_size * ratio)
+        else:
+            font_size = int(height * 0.8)
+
     # 必须设置布局宽度，对齐方式才能生效
     layout.set_width(width * Pango.SCALE)
 
@@ -67,7 +87,7 @@ def username_image():
     username = request.args.get("name", "默认昵称🌟")
     width = request.args.get("width", 600, type=int)
     height = request.args.get("height", 100, type=int)
-    font_size = request.args.get("size", 36, type=int)
+    font_size = request.args.get("size", 0, type=int)
     color = request.args.get("color", "000000")  # 默认黑色
     alignment = request.args.get("align", "center")  # 默认居中对齐
     valign = request.args.get("valign", "middle") # 默认垂直居中
