@@ -15,4 +15,5 @@ docker run -d \
   --name $CONTAINER_NAME \
   --env TZ=Asia/Shanghai \
   --restart unless-stopped \
+  --network host \
   nametex
