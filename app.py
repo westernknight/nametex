@@ -43,24 +43,6 @@ def render_text_to_png(text, width, height, font_size, color, alignment, valign,
     
     ctx.move_to(0, y_pos)
 
-    # 创建文字路径
-    PangoCairo.layout_path(ctx, layout)
-
-    # 描边
-    if stroke_width > 0:
-        try:
-            # 解析描边颜色
-            s_color = stroke_color.lstrip('#')
-            sr = int(s_color[0:2], 16) / 255.0
-            sg = int(s_color[2:4], 16) / 255.0
-            sb = int(s_color[4:6], 16) / 255.0
-            ctx.set_source_rgb(sr, sg, sb)
-        except:
-            ctx.set_source_rgb(1, 1, 1) # 颜色格式错误则默认为白色
-        
-        ctx.set_line_width(stroke_width)
-        ctx.stroke_preserve()
-        
     # 解析十六进制颜色
     try:
         color = color.lstrip('#')
@@ -71,8 +53,8 @@ def render_text_to_png(text, width, height, font_size, color, alignment, valign,
     except:
         ctx.set_source_rgb(0, 0, 0)  # 如果颜色格式错误，默认为黑色
 
-    #PangoCairo.show_layout(ctx, layout)
-    ctx.fill()
+    PangoCairo.show_layout(ctx, layout)
+
 
 
     img_io = io.BytesIO()
