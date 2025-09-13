@@ -4,15 +4,16 @@ gi.require_version('PangoCairo', '1.0')
 # 修改这里：直接导入 cairo 而不是从 gi.repository 导入
 import cairo
 from gi.repository import Pango, PangoCairo
-from flask import Flask, request, send_file
+from flask import Flask, request, send_file, jsonify
 import io
+import base64
 
 app = Flask(__name__)
 
 FONT_MAIN = "ChillRoundFRegular.ttf"
 FONT_EMOJI = "NotoColorEmoji.ttf"
 
-def render_text_to_png(text, width, height, font_size, max_size, color, alignment, valign, stroke_color, stroke_width):
+def render_text_to_png(name, width, height, font_size, max_size, color, alignment, valign, stroke_color, stroke_width):
     surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
     ctx = cairo.Context(surface)
 
@@ -29,7 +30,7 @@ def render_text_to_png(text, width, height, font_size, max_size, color, alignmen
     else:
         layout.set_alignment(Pango.Alignment.LEFT)
 
-    layout.set_text(text, -1)
+    layout.set_text(name, -1)
 
      # Best Fit功能：当font_size为0时，自动计算最适合的字体大小
     if font_size == 0:
@@ -128,20 +129,40 @@ def render_text_to_png(text, width, height, font_size, max_size, color, alignmen
     img_io.seek(0)
     return img_io
 
+def get_render_params():
+    """提取公共的参数解析逻辑"""
+    return {
+        'name': request.args.get("name", "默认昵称🌟"),
+        'width': request.args.get("width", 600, type=int),
+        'height': request.args.get("height", 100, type=int),
+        'font_size': request.args.get("size", 0, type=int),
+        'color': request.args.get("color", "000000"),
+        'alignment': request.args.get("align", "center"),
+        'valign': request.args.get("valign", "middle"),
+        'stroke_color': request.args.get("stroke_color", "ffffff"),
+        'stroke_width': request.args.get("stroke_width", 0, type=int),
+        'max_size': request.args.get("max_size", 0, type=int)
+    }
+
 @app.route("/username_image")
 def username_image():
-    username = request.args.get("name", "默认昵称🌟")
-    width = request.args.get("width", 600, type=int)
-    height = request.args.get("height", 100, type=int)
-    font_size = request.args.get("size", 0, type=int)
-    color = request.args.get("color", "000000")  # 默认黑色
-    alignment = request.args.get("align", "center")  # 默认居中对齐
-    valign = request.args.get("valign", "middle") # 默认垂直居中
-    stroke_color = request.args.get("stroke_color", "ffffff")  # 默认白色描边
-    stroke_width = request.args.get("stroke_width", 0, type=int)  # 默认无描边
-    max_size = request.args.get("max_size",0, type=int)  # 最大字体大小限制
-    img_io = render_text_to_png(username, width, height, font_size, max_size, color, alignment, valign, stroke_color, stroke_width)
+    params = get_render_params()
+    img_io = render_text_to_png(**params)
     return send_file(img_io, mimetype="image/png")
 
+@app.route("/username_data")
+def username_data():
+    params = get_render_params()
+    img_io = render_text_to_png(**params)
+    
+    # 返回base64字符串
+    img_bytes = img_io.getvalue()
+    img_base64 = base64.b64encode(img_bytes).decode('utf-8')
+    return jsonify({
+        "data": img_base64,
+        "format": "base64",
+        "mime_type": "image/png"
+    })
+    
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
