@@ -90,21 +90,31 @@ def render_text_to_png(text, width, height, font_size, max_size, color, alignmen
 
     # 如果有描边效果且描边宽度大于0
     if stroke_width > 0:
-        # 先绘制描边
+        # 使用多次渲染的方式创建描边效果，避免影响emoji
         stroke_r, stroke_g, stroke_b = parse_color(stroke_color)
+        
+        # 在多个偏移位置绘制描边
+        offsets = []
+        for dx in range(-stroke_width, stroke_width + 1):
+            for dy in range(-stroke_width, stroke_width + 1):
+                if dx != 0 or dy != 0:  # 排除中心位置
+                    distance = (dx * dx + dy * dy) ** 0.5
+                    if distance <= stroke_width:
+                        offsets.append((dx, dy))
+        
+        # 绘制描边
         ctx.set_source_rgb(stroke_r, stroke_g, stroke_b)
+        for dx, dy in offsets:
+            ctx.save()
+            ctx.move_to(dx, y_pos + dy)
+            PangoCairo.show_layout(ctx, layout)
+            ctx.restore()
         
-        # 创建文本路径
-        PangoCairo.layout_path(ctx, layout)
-        
-        # 设置描边宽度并描边
-        ctx.set_line_width(stroke_width * 2)  # 乘以2因为描边是双向的
-        ctx.stroke_preserve()  # 保留路径用于后续填充
-        
-        # 再绘制填充文本
+        # 绘制主文本
         fill_r, fill_g, fill_b = parse_color(color)
         ctx.set_source_rgb(fill_r, fill_g, fill_b)
-        ctx.fill()
+        ctx.move_to(0, y_pos)
+        PangoCairo.show_layout(ctx, layout)
     else:
         # 没有描边，直接绘制填充文本
         fill_r, fill_g, fill_b = parse_color(color)
