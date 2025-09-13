@@ -38,7 +38,8 @@ def render_text_to_png(text, width, height, font_size, color, alignment, valign,
             font_size = int(height * 0.8)
 
     # 必须设置布局宽度，对齐方式才能生效
-    layout.set_width(width * Pango.SCALE)
+    # layout.set_width(width * Pango.SCALE)
+    layout.set_wrap(Pango.WrapMode.NONE)  # 禁用换行
 
     if alignment == "center":
         layout.set_alignment(Pango.Alignment.CENTER)
