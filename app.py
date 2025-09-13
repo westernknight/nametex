@@ -12,7 +12,7 @@ app = Flask(__name__)
 FONT_MAIN = "ChillRoundFRegular.ttf"
 FONT_EMOJI = "NotoColorEmoji.ttf"
 
-def render_text_to_png(text, width, height, font_size, color, alignment, valign, stroke_color, stroke_width):
+def render_text_to_png(text, width, height, font_size, color, alignment, valign):
     surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
     ctx = cairo.Context(surface)
 
@@ -71,7 +71,7 @@ def username_image():
     valign = request.args.get("valign", "middle") # 默认垂直居中
     stroke_color = request.args.get("stroke_color", "ffffff")  # 默认白色描边
     stroke_width = request.args.get("stroke_width", 0, type=int)  # 默认无描边
-    img_io = render_text_to_png(username, width, height, font_size, color, alignment, valign, stroke_color, stroke_width)
+    img_io = render_text_to_png(username, width, height, font_size, color, alignment, valign)
     return send_file(img_io, mimetype="image/png")
 
 if __name__ == "__main__":
