@@ -12,34 +12,15 @@ app = Flask(__name__)
 FONT_MAIN = "ChillRoundFRegular.ttf"
 FONT_EMOJI = "NotoColorEmoji.ttf"
 
-def render_text_to_png(text, width, height, font_size, color, alignment, valign, stroke_color, stroke_width):
+def render_text_to_png(text, width, height, font_size, color, alignment, valign, stroke_color, stroke_width, max_size):
     surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
     ctx = cairo.Context(surface)
 
     layout = PangoCairo.create_layout(ctx)
 
-    if font_size == 0:
-        # Auto-calculate font size
-        reference_font_size = 100
-        font_desc = Pango.font_description_from_string(f"ChillRoundFRegular, Noto Color Emoji {reference_font_size}")
-        layout.set_font_description(font_desc)
-        layout.set_text(text, -1)
-        
-        _ink_rect, logical_rect = layout.get_pixel_extents()
-        text_width = logical_rect.width
-        text_height = logical_rect.height
-
-        if text_width > 0 and text_height > 0:
-            width_ratio = width / text_width
-            height_ratio = height / text_height
-            ratio = min(width_ratio, height_ratio)
-            font_size = int(reference_font_size * ratio)
-        else:
-            font_size = int(height * 0.8)
 
     # 必须设置布局宽度，对齐方式才能生效
-    # layout.set_width(width * Pango.SCALE)
-    layout.set_wrap(Pango.WrapMode.NONE)  # 禁用换行
+    layout.set_width(width * Pango.SCALE)
 
     if alignment == "center":
         layout.set_alignment(Pango.Alignment.CENTER)
@@ -49,6 +30,38 @@ def render_text_to_png(text, width, height, font_size, color, alignment, valign,
         layout.set_alignment(Pango.Alignment.LEFT)
 
     layout.set_text(text, -1)
+
+     # Best Fit功能：当font_size为0时，自动计算最适合的字体大小
+    if font_size == 0:
+        # 二分查找最适合的字体大小
+        min_size = 1
+        # 如果设置了max_size，则使用它作为上限，否则使用容器尺寸
+        if max_size !=0:
+            search_max_size = max_size
+        else:
+            search_max_size = min(width, height)  # 初始最大尺寸
+        best_size = min_size
+        
+        while min_size <= search_max_size:
+            test_size = (min_size + search_max_size) // 2
+            font_desc_str = f"ChillRoundFRegular, Noto Color Emoji {test_size}"
+            font_desc = Pango.font_description_from_string(font_desc_str)
+            layout.set_font_description(font_desc)
+            
+            # 获取文本尺寸
+            _ink_rect, logical_rect = layout.get_pixel_extents()
+            text_width = logical_rect.width
+            text_height = logical_rect.height
+            
+            # 检查是否适合容器
+            if text_width <= width and text_height <= height:
+                best_size = test_size
+                min_size = test_size + 1
+            else:
+                search_max_size = test_size - 1
+        
+        font_size = best_size
+
     font_desc_str = f"ChillRoundFRegular, Noto Color Emoji {font_size}"
     font_desc = Pango.font_description_from_string(font_desc_str)
     layout.set_font_description(font_desc)
@@ -94,7 +107,8 @@ def username_image():
     valign = request.args.get("valign", "middle") # 默认垂直居中
     stroke_color = request.args.get("stroke_color", "ffffff")  # 默认白色描边
     stroke_width = request.args.get("stroke_width", 0, type=int)  # 默认无描边
-    img_io = render_text_to_png(username, width, height, font_size, color, alignment, valign, stroke_color, stroke_width)
+    max_size = request.args.get("max_size",0, type=int)  # 最大字体大小限制
+    img_io = render_text_to_png(username, width, height, font_size, color, alignment, valign, stroke_color, stroke_width, max_size)
     return send_file(img_io, mimetype="image/png")
 
 if __name__ == "__main__":
