@@ -13,6 +13,7 @@
 - 📍 支持文本对齐方式（左对齐、居中、右对齐）
 - ⬆️ 支持垂直对齐（顶部、中间、底部）
 - 🌟 完美支持中文字体和 Emoji 表情
+- 📊 支持Base64格式数据输出（JSON格式）
 - 🐳 Docker 容器化部署
 
 ## 技术栈
@@ -115,7 +116,57 @@ http://localhost:5000/username_image?name=描边文字🌟&color=ffffff&stroke_c
 http://localhost:5000/username_image?name=完美效果😊&width=600&height=120&size=0&max_size=60&color=ff6b6b&stroke_color=ffffff&stroke_width=3&align=center&valign=middle
 ```
 
+### 获取Base64格式数据
 
+**接口地址**: `GET /username_data`
+
+**参数说明**: 与 `/username_image` 接口完全相同
+
+**返回格式**: JSON格式，包含以下字段：
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| `data` | string | Base64编码的PNG图片数据 |
+| `format` | string | 图片格式，固定为"png" |
+| `mime_type` | string | MIME类型，固定为"image/png" |
+
+**返回示例**:
+```json
+{
+  "data": "iVBORw0KGgoAAAANSUhEUgAAAlgAAABkCAYAAABfx...",
+  "format": "png",
+  "mime_type": "image/png"
+}
+```
+
+**使用场景**:
+- 前端需要直接处理图片数据
+- 需要将图片数据存储到数据库
+- API集成和数据传输
+- 移动应用开发
+
+**使用示例**:
+
+1. **获取Base64数据**：
+```
+http://localhost:5000/username_data?name=Hello世界🌍
+```
+
+2. **前端JavaScript使用**：
+```javascript
+fetch('http://localhost:5000/username_data?name=用户名')
+  .then(response => response.json())
+  .then(data => {
+    const img = document.createElement('img');
+    img.src = `data:${data.mime_type};base64,${data.data}`;
+    document.body.appendChild(img);
+  });
+```
+
+3. **自定义样式的Base64数据**：
+```
+http://localhost:5000/username_data?name=用户名&width=800&height=150&size=48&color=ff6b6b&align=center&valign=middle
+```
 
 ## 项目结构
 
