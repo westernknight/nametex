@@ -1,7 +1,9 @@
 import gi
 gi.require_version('Pango', '1.0')
 gi.require_version('PangoCairo', '1.0')
-from gi.repository import Pango, PangoCairo, cairo
+# 修改这里：直接导入 cairo 而不是从 gi.repository 导入
+import cairo
+from gi.repository import Pango, PangoCairo
 from flask import Flask, request, send_file
 import io
 
