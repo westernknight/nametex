@@ -12,7 +12,7 @@ app = Flask(__name__)
 FONT_MAIN = "ChillRoundFRegular.ttf"
 FONT_EMOJI = "NotoColorEmoji.ttf"
 
-def render_text_to_png(text, width, height, font_size, color, alignment, valign, stroke_color, stroke_width, max_size):
+def render_text_to_png(text, width, height, font_size, max_size, color, alignment, valign, stroke_color, stroke_width):
     surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
     ctx = cairo.Context(surface)
 
@@ -77,17 +77,39 @@ def render_text_to_png(text, width, height, font_size, color, alignment, valign,
     
     ctx.move_to(0, y_pos)
 
-    # 解析十六进制颜色
-    try:
-        color = color.lstrip('#')
-        r = int(color[0:2], 16) / 255.0
-        g = int(color[2:4], 16) / 255.0
-        b = int(color[4:6], 16) / 255.0
-        ctx.set_source_rgb(r, g, b)
-    except:
-        ctx.set_source_rgb(0, 0, 0)  # 如果颜色格式错误，默认为黑色
+    # 解析十六进制颜色的辅助函数
+    def parse_color(color_str):
+        try:
+            color_str = color_str.lstrip('#')
+            r = int(color_str[0:2], 16) / 255.0
+            g = int(color_str[2:4], 16) / 255.0
+            b = int(color_str[4:6], 16) / 255.0
+            return (r, g, b)
+        except:
+            return (0, 0, 0)  # 默认黑色
 
-    PangoCairo.show_layout(ctx, layout)
+    # 如果有描边效果且描边宽度大于0
+    if stroke_width > 0:
+        # 先绘制描边
+        stroke_r, stroke_g, stroke_b = parse_color(stroke_color)
+        ctx.set_source_rgb(stroke_r, stroke_g, stroke_b)
+        
+        # 创建文本路径
+        PangoCairo.layout_path(ctx, layout)
+        
+        # 设置描边宽度并描边
+        ctx.set_line_width(stroke_width * 2)  # 乘以2因为描边是双向的
+        ctx.stroke_preserve()  # 保留路径用于后续填充
+        
+        # 再绘制填充文本
+        fill_r, fill_g, fill_b = parse_color(color)
+        ctx.set_source_rgb(fill_r, fill_g, fill_b)
+        ctx.fill()
+    else:
+        # 没有描边，直接绘制填充文本
+        fill_r, fill_g, fill_b = parse_color(color)
+        ctx.set_source_rgb(fill_r, fill_g, fill_b)
+        PangoCairo.show_layout(ctx, layout)
 
 
 
@@ -108,7 +130,7 @@ def username_image():
     stroke_color = request.args.get("stroke_color", "ffffff")  # 默认白色描边
     stroke_width = request.args.get("stroke_width", 0, type=int)  # 默认无描边
     max_size = request.args.get("max_size",0, type=int)  # 最大字体大小限制
-    img_io = render_text_to_png(username, width, height, font_size, color, alignment, valign, stroke_color, stroke_width, max_size)
+    img_io = render_text_to_png(username, width, height, font_size, max_size, color, alignment, valign, stroke_color, stroke_width)
     return send_file(img_io, mimetype="image/png")
 
 if __name__ == "__main__":
