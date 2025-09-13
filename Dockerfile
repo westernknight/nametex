@@ -20,10 +20,11 @@ COPY requirements.txt /app/
 # 安装Python依赖
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 复制字体文件
-COPY ChillRoundFRegular.ttf /app/
-COPY NotoColorEmoji.ttf /app/
-
+# 复制字体文件到标准目录
+RUN mkdir -p /usr/share/fonts/truetype
+COPY ChillRoundFRegular.ttf /usr/share/fonts/truetype/
+COPY NotoColorEmoji.ttf /usr/share/fonts/truetype/
+RUN fc-cache -f -v
 # 最后复制应用代码
 COPY app.py /app/
 

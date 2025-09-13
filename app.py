@@ -19,7 +19,7 @@ def render_text_to_png(text):
 
     layout = PangoCairo.create_layout(ctx)
     layout.set_text(text, -1)
-    font_desc = Pango.font_description_from_string("Sans 36")
+    font_desc = Pango.font_description_from_string("ChillRoundF, Noto Color Emoji 36")
     layout.set_font_description(font_desc)
 
     ctx.set_source_rgb(0, 0, 0)  # 设置文字颜色为黑色
