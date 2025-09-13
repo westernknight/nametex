@@ -32,6 +32,17 @@ def render_text_to_png(text, width, height, font_size, color, alignment):
     font_desc = Pango.font_description_from_string(font_desc_str)
     layout.set_font_description(font_desc)
 
+    # 计算垂直位置
+    _ink_rect, logical_rect = layout.get_pixel_extents()
+    text_height = logical_rect.height
+    y_pos = 0
+    if valign == "middle":
+        y_pos = (height - text_height) / 2
+    elif valign == "bottom":
+        y_pos = height - text_height
+    
+    ctx.move_to(0, y_pos)
+    
     # 解析十六进制颜色
     try:
         color = color.lstrip('#')
@@ -57,7 +68,8 @@ def username_image():
     font_size = request.args.get("size", 36, type=int)
     color = request.args.get("color", "000000")  # 默认黑色
     alignment = request.args.get("align", "center")  # 默认居中对齐
-    img_io = render_text_to_png(username, width, height, font_size, color, alignment)
+    valign = request.args.get("valign", "middle") # 默认垂直居中
+    img_io = render_text_to_png(username, width, height, font_size, color, alignment, valign)
     return send_file(img_io, mimetype="image/png")
 
 if __name__ == "__main__":
