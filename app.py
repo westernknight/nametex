@@ -17,6 +17,8 @@ def render_text_to_png(text, width, height, font_size, color, alignment, valign,
     ctx = cairo.Context(surface)
 
     layout = PangoCairo.create_layout(ctx)
+    layout.set_width(width * Pango.SCALE)
+    layout.set_wrap(Pango.WrapMode.WORD_CHAR)
 
     if font_size == 0:
         # Auto-calculate font size
@@ -26,19 +28,17 @@ def render_text_to_png(text, width, height, font_size, color, alignment, valign,
         layout.set_text(text, -1)
         
         _ink_rect, logical_rect = layout.get_pixel_extents()
-        text_width = logical_rect.width
-        text_height = logical_rect.height
+        text_height_at_ref_size = logical_rect.height
 
-        if text_width > 0 and text_height > 0:
-            width_ratio = width / text_width
-            height_ratio = height / text_height
-            ratio = min(width_ratio, height_ratio)
-            font_size = int(reference_font_size * ratio)
+        if text_height_at_ref_size > 0:
+            # Calculate font size based on height ratio
+            height_ratio = height / text_height_at_ref_size
+            font_size = int(reference_font_size * height_ratio)
+            # Apply a small margin to prevent clipping
+            font_size = max(1, int(font_size * 0.95))
         else:
+            # Fallback if text height is zero
             font_size = int(height * 0.8)
-
-    # 必须设置布局宽度，对齐方式才能生效
-    layout.set_width(width * Pango.SCALE)
 
     if alignment == "center":
         layout.set_alignment(Pango.Alignment.CENTER)
