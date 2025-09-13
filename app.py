@@ -12,7 +12,7 @@ app = Flask(__name__)
 FONT_MAIN = "ChillRoundFRegular.ttf"
 FONT_EMOJI = "NotoColorEmoji.ttf"
 
-def render_text_to_png(text, width, height, font_size, color, alignment):
+def render_text_to_png(text, width, height, font_size, color, alignment, valign):
     surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
     ctx = cairo.Context(surface)
 
@@ -42,7 +42,7 @@ def render_text_to_png(text, width, height, font_size, color, alignment):
         y_pos = height - text_height
     
     ctx.move_to(0, y_pos)
-    
+
     # 解析十六进制颜色
     try:
         color = color.lstrip('#')
