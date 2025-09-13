@@ -11,25 +11,15 @@ app = Flask(__name__)
 
 FONT_MAIN = "ChillRoundFRegular.ttf"
 FONT_EMOJI = "NotoColorEmoji.ttf"
-def _parse_color(color_hex, default_color=(0, 0, 0)):
-    """解析十六进制颜色字符串 (RRGGBB) 并返回 Cairo 使用的 (r, g, b) 元组。"""
-    try:
-        color_hex = color_hex.lstrip('#')
-        r = int(color_hex[0:2], 16) / 255.0
-        g = int(color_hex[2:4], 16) / 255.0
-        b = int(color_hex[4:6], 16) / 255.0
-        return (r, g, b)
-    except:
-        return default_color
 
 def render_text_to_png(text, width, height, font_size, color, alignment, valign, stroke_color, stroke_width):
     surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
     ctx = cairo.Context(surface)
 
     layout = PangoCairo.create_layout(ctx)
+    # 必须设置布局宽度，对齐方式才能生效
     layout.set_width(width * Pango.SCALE)
 
-    # 水平对齐
     if alignment == "center":
         layout.set_alignment(Pango.Alignment.CENTER)
     elif alignment == "right":
@@ -42,7 +32,7 @@ def render_text_to_png(text, width, height, font_size, color, alignment, valign,
     font_desc = Pango.font_description_from_string(font_desc_str)
     layout.set_font_description(font_desc)
 
-    # 垂直对齐计算
+    # 计算垂直位置
     _ink_rect, logical_rect = layout.get_pixel_extents()
     text_height = logical_rect.height
     y_pos = 0
@@ -53,20 +43,17 @@ def render_text_to_png(text, width, height, font_size, color, alignment, valign,
     
     ctx.move_to(0, y_pos)
 
-    # 创建文本路径
-    PangoCairo.layout_path(ctx, layout)
-
-    # 如果描边宽度大于0，则绘制描边
-    if stroke_width > 0:
-        r, g, b = _parse_color(stroke_color, default_color=(1, 1, 1))  # 默认白色描边
+    # 解析十六进制颜色
+    try:
+        color = color.lstrip('#')
+        r = int(color[0:2], 16) / 255.0
+        g = int(color[2:4], 16) / 255.0
+        b = int(color[4:6], 16) / 255.0
         ctx.set_source_rgb(r, g, b)
-        ctx.set_line_width(stroke_width)
-        ctx.stroke_preserve()  # 描边并保留路径用于填充
+    except:
+        ctx.set_source_rgb(0, 0, 0)  # 如果颜色格式错误，默认为黑色
 
-    # 绘制填充
-    r, g, b = _parse_color(color, default_color=(0, 0, 0))  # 默认黑色填充
-    ctx.set_source_rgb(r, g, b)
-    ctx.fill()
+    PangoCairo.show_layout(ctx, layout)
 
     img_io = io.BytesIO()
     surface.write_to_png(img_io)
